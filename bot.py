@@ -10,10 +10,10 @@ from telegram.ext import (
     ContextTypes,
 )
 
-# Configuration Variables
-TOKEN = os.getenv("8835254072:AAFYxerC87uHyeWGwl8x8Qs9OGIaztTMUdA", "8835254072:AAFYxerC87uHyeWGwl8x8Qs9OGIaztTMUdA")
-ADMIN_ID = int(os.getenv("ADMIN_ID", "8181168048"))  # এখানে আপনার টেলিগ্রাম আইডি দিন
-ADMIN_SECRET = os.getenv("ADMIN_SECRET", "my_secret_admin_key_20102") # অ্যাডমিন প্যানেল সুরক্ষার জন্য সিক্রেট পাসওয়ার্ড
+# --- সরাসরি এখানে আপনার তথ্যগুলো বসিয়ে দিন ---
+TOKEN = "8529798413:AAFe2AKthTv_CPKgxhU9N8jEut8GDk_yla4"      # BotFather থেকে পাওয়া আপনার বটের টোকেন এখানে দিন
+ADMIN_ID =7190437569                # আপনার টেলিগ্রাম ইউজার আইডি এখানে দিন (শুধু সংখ্যা)
+ADMIN_SECRET = "my_secret_key"     # অ্যাডমিন প্যানেল সুরক্ষার জন্য একটি পাসওয়ার্ড দিন
 
 # --- Database Setup ---
 def init_db():
@@ -44,7 +44,7 @@ init_db()
 def get_db():
     return sqlite3.connect("bot_database.db", check_same_thread=False)
 
-# --- Flask Web Server & Secure Admin Panel ---
+# --- Flask Web Server & Admin Panel ---
 app = Flask(__name__)
 
 ADMIN_TEMPLATE = """
@@ -52,7 +52,7 @@ ADMIN_TEMPLATE = """
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Secure Admin Panel - Telegram Bot</title>
+    <title>Admin Panel - Telegram Bot</title>
     <style>
         body { font-family: Arial, sans-serif; background: #f4f7f6; margin: 0; padding: 20px; }
         .container { max-width: 1000px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
@@ -64,8 +64,7 @@ ADMIN_TEMPLATE = """
 </head>
 <body>
     <div class="container">
-        <h2>👑 Secure Admin Dashboard</h2>
-        
+        <h2>👑 Admin Dashboard</h2>
         <h3>Total Users: {{ users|length }}</h3>
         <table>
             <tr>
@@ -85,24 +84,6 @@ ADMIN_TEMPLATE = """
             </tr>
             {% endfor %}
         </table>
-
-        <h3 style="margin-top: 40px;">Pending Submissions</h3>
-        <table>
-            <tr>
-                <th>ID</th>
-                <th>User ID</th>
-                <th>Details</th>
-                <th>Status</th>
-            </tr>
-            {% for s in subs %}
-            <tr>
-                <td>{{ s[0] }}</td>
-                <td>{{ s[1] }}</td>
-                <td>{{ s[2] }}</td>
-                <td>{{ s[3] }}</td>
-            </tr>
-            {% endfor %}
-        </table>
     </div>
 </body>
 </html>
@@ -110,20 +91,15 @@ ADMIN_TEMPLATE = """
 
 @app.route("/")
 def home():
-    return "Bot is running and Web service is active!"
+    return "Bot is running successfully!"
 
-@app.route("/admin/<secret>")
+@app.route(f"/admin/{ADMIN_SECRET}")
 def admin_panel(secret):
-    # সিক্রেট কি ম্যাচ না করলে প্যানেল ওপেন হবে না (403 Forbidden দেখাবে)
-    if secret != ADMIN_SECRET:
-        abort(403)
-        
     conn = get_db()
     cursor = conn.cursor()
     cursor.execute("SELECT user_id, username, full_name, balance, holding FROM users")
     users = cursor.fetchall()
-    cursor.execute("SELECT id, user_id, info, status FROM submissions")
-    subs = cursor.fetchall()
+    subs = []
     conn.close()
     return render_template_string(ADMIN_TEMPLATE, users=users, subs=subs)
 
@@ -177,7 +153,6 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             [InlineKeyboardButton("📖 Help / Support", callback_data="support"), InlineKeyboardButton("❓ FAQ", callback_data="faq")]
         ]
         
-        # শুধুমাত্র নির্দিষ্ট ADMIN_ID হলে প্যানেল লিংক মেনুতে দেখাবে
         if user.id == ADMIN_ID:
             admin_url = f"https://your-render-app-url.onrender.com/admin/{ADMIN_SECRET}"
             keyboard.append([InlineKeyboardButton("👑 Admin Panel", url=admin_url)])
@@ -190,30 +165,9 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"⏳ **Holding:** {holding:.2f} ৳\n\n"
             f"👇 **Select an option:**",
             reply_markup=InlineKeyboardMarkup(keyboard),
-            parse_mode="Markdown"
+            parse_Mode="Markdown"
         )
 
-    elif query.data == "balance":
-        user = query.from_user
-        conn = get_db()
-        cursor = conn.cursor()
-        cursor.execute("SELECT balance, holding FROM users WHERE user_id = ?", (user.id,))
-        row = cursor.fetchone()
-        conn.close()
-        
-        balance = row[0] if row else 0.0
-        holding = row[1] if row else 0.0
-
-        kb = [[InlineKeyboardButton("🔙 Back", callback_data="verify_membership")]]
-        await query.message.edit_text(
-            f"💰 **Your Balance Details**\n\n"
-            f"🔹 **Main Balance:** {balance:.2f} ৳\n"
-            f"⏳ **Holding Balance:** {holding:.2f} ৳",
-            reply_markup=InlineKeyboardMarkup(kb),
-            parse_mode="Markdown"
-        )
-
-# --- Main Function ---
 def main():
     t = threading.Thread(target=run_flask)
     t.start()
@@ -222,7 +176,7 @@ def main():
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CallbackQueryHandler(button_handler))
 
-    print("Bot is starting with Secure Admin Panel...")
+    print("Bot is starting...")
     application.run_polling()
 
 if __name__ == "__main__":
