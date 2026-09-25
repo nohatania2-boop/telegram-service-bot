@@ -11,7 +11,7 @@ from telegram.ext import (
 )
 
 # --- সরাসরি এখানে আপনার তথ্যগুলো বসিয়ে দিন ---
-TOKEN = "8835254072:AAFYxerC87uHyeWGwl8x8Qs9OGIaztTMUdA"      # BotFather থেকে পাওয়া আপনার বটের টোকেন এখানে দিন
+TOKEN = "8862031612:AAFDDrCt6U8sH5t_bM2sMJkut1l672i6tZU"      # BotFather থেকে পাওয়া আপনার বটের টোকেন এখানে দিন
 ADMIN_ID =8181168048             # আপনার টেলিগ্রাম ইউজার আইডি এখানে দিন (শুধু সংখ্যা)
 ADMIN_SECRET = "my_secret_key"     # অ্যাডমিন প্যানেল সুরক্ষার জন্য একটি পাসওয়ার্ড দিন
 
